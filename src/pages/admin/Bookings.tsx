@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Filter,
@@ -8,16 +8,16 @@ import {
   Eye,
   Trash2,
   RefreshCw,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -25,7 +25,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,23 +35,23 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import StatusBadge from '@/components/bookings/StatusBadge';
-import BookingDetailsModal from '@/components/bookings/BookingDetailsModal';
-import { bookingsApi } from '@/services/api';
-import { Booking } from '@/types';
-import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+} from "@/components/ui/alert-dialog";
+import StatusBadge from "@/components/bookings/StatusBadge";
+import BookingDetailsModal from "@/components/bookings/BookingDetailsModal";
+import { bookingsApi } from "@/services/api";
+import { Booking } from "@/types";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 const ITEMS_PER_PAGE = 20;
 
 const Bookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -66,7 +66,7 @@ const Bookings = () => {
     try {
       const response = await bookingsApi.search({
         search: searchQuery || undefined,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
         date_from: dateFrom || undefined,
         date_to: dateTo || undefined,
         limit: ITEMS_PER_PAGE,
@@ -77,9 +77,9 @@ const Bookings = () => {
       setTotalCount(response.data.total);
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to load bookings from server.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load bookings from server.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -96,10 +96,10 @@ const Bookings = () => {
   };
 
   const handleClearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setDateFrom('');
-    setDateTo('');
+    setSearchQuery("");
+    setStatusFilter("all");
+    setDateFrom("");
+    setDateTo("");
     setCurrentPage(1);
   };
 
@@ -120,15 +120,15 @@ const Bookings = () => {
     try {
       await bookingsApi.delete(deleteBookingId);
       toast({
-        title: 'Booking deleted',
-        description: 'The booking has been successfully deleted.',
+        title: "Booking deleted",
+        description: "The booking has been successfully deleted.",
       });
       fetchBookings();
     } catch {
       toast({
-        title: 'Error',
-        description: 'Could not delete the booking.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Could not delete the booking.",
+        variant: "destructive",
       });
     } finally {
       setDeleteBookingId(null);
@@ -139,16 +139,16 @@ const Bookings = () => {
     try {
       await bookingsApi.updateStatus(bookingId, newStatus);
       toast({
-        title: 'Status updated',
+        title: "Status updated",
         description: `Booking status changed to ${newStatus}.`,
       });
       fetchBookings();
       setIsDetailsOpen(false);
     } catch {
       toast({
-        title: 'Error',
-        description: 'Could not update booking status.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Could not update booking status.",
+        variant: "destructive",
       });
     }
   };
@@ -166,7 +166,7 @@ const Bookings = () => {
           </p>
         </div>
         <Button onClick={fetchBookings} variant="outline" className="gap-2">
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
@@ -180,7 +180,7 @@ const Bookings = () => {
               placeholder="Search by name, email, phone, service..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="pl-10"
             />
           </div>
@@ -193,13 +193,22 @@ const Bookings = () => {
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="otp_pending">OTP Pending</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
 
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+          />
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+          />
         </div>
 
         <div className="flex gap-2 mt-4">
@@ -255,16 +264,20 @@ const Bookings = () => {
                     </div>
                   </TableCell>
                   <TableCell>{b.service}</TableCell>
-                  <TableCell>{b.package || '-'}</TableCell>
+                  <TableCell>{b.package || "-"}</TableCell>
                   <TableCell>{b.date}</TableCell>
                   <TableCell>
                     <StatusBadge status={b.status} />
                   </TableCell>
                   <TableCell>
-                    {format(new Date(b.created_at as string), 'MMM d, yyyy')}
+                    {format(new Date(b.created_at as string), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(b)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewDetails(b)}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button
@@ -285,8 +298,9 @@ const Bookings = () => {
         {totalPages > 1 && (
           <div className="flex justify-between items-center p-4 border-t">
             <p className="text-sm text-muted-foreground">
-              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
-              {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount}
+              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+              {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of{" "}
+              {totalCount}
             </p>
             <div className="flex gap-2">
               <Button
@@ -320,7 +334,10 @@ const Bookings = () => {
         onStatusUpdate={handleStatusUpdate}
       />
 
-      <AlertDialog open={!!deleteBookingId} onOpenChange={() => setDeleteBookingId(null)}>
+      <AlertDialog
+        open={!!deleteBookingId}
+        onOpenChange={() => setDeleteBookingId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Booking</AlertDialogTitle>
@@ -330,7 +347,10 @@ const Bookings = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteBooking} className="bg-destructive">
+            <AlertDialogAction
+              onClick={handleDeleteBooking}
+              className="bg-destructive"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

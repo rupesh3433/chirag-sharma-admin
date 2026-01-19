@@ -15,6 +15,10 @@ const statusConfig = {
     label: 'Pending',
     className: 'bg-info/10 text-info border-info/20',
   },
+  approved: {
+    label: 'Approved',
+    className: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  },
   completed: {
     label: 'Completed',
     className: 'bg-success/10 text-success border-success/20',

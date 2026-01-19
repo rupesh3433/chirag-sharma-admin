@@ -8,7 +8,7 @@ interface StatsCardProps {
   description?: string;
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'info';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'info' | 'approved';
 }
 
 const variantStyles = {
@@ -17,6 +17,7 @@ const variantStyles = {
   success: 'bg-gradient-to-br from-success/10 to-success/5 border-success/20',
   warning: 'bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20',
   info: 'bg-gradient-to-br from-info/10 to-info/5 border-info/20',
+  approved: 'bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20',
 };
 
 const iconVariantStyles = {
@@ -25,6 +26,7 @@ const iconVariantStyles = {
   success: 'bg-success text-success-foreground',
   warning: 'bg-warning text-warning-foreground',
   info: 'bg-info text-info-foreground',
+  approved: 'bg-blue-500 text-white',
 };
 
 const StatsCard = ({
