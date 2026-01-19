@@ -1,32 +1,35 @@
 import { useState, useEffect } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from 'recharts';
-import { Download, TrendingUp, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
+import {
+  Download,
+  Calendar,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import StatsCard from '@/components/dashboard/StatsCard';
 import { analyticsApi, bookingsApi } from '@/services/api';
 import { Analytics, ServiceAnalytics, MonthlyData } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { demoAnalytics, demoServiceData, demoMonthlyData, demoBookings } from '@/data/demoData';
 
 const COLORS = ['#F43F5E', '#8B5CF6', '#10B981', '#F59E0B', '#3B82F6', '#EC4899'];
 
-const Analytics_ = () => {
+const AnalyticsPage = () => {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [serviceData, setServiceData] = useState<ServiceAnalytics[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
@@ -34,23 +37,13 @@ const Analytics_ = () => {
   const [exportDateFrom, setExportDateFrom] = useState('');
   const [exportDateTo, setExportDateTo] = useState('');
   const { toast } = useToast();
-  const { isDemo } = useAuth();
 
   useEffect(() => {
     fetchData();
-  }, [isDemo]);
+  }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
-
-    // Use demo data if in demo mode
-    if (isDemo) {
-      setAnalytics(demoAnalytics);
-      setServiceData(demoServiceData);
-      setMonthlyData(demoMonthlyData);
-      setIsLoading(false);
-      return;
-    }
 
     try {
       const [overviewRes, serviceRes, monthlyRes] = await Promise.all([
@@ -58,17 +51,15 @@ const Analytics_ = () => {
         analyticsApi.getByService(),
         analyticsApi.getByMonth(),
       ]);
+
       setAnalytics(overviewRes.data);
-      setServiceData(serviceRes.data.services || []);
-      setMonthlyData(monthlyRes.data.monthly_data || []);
+      setServiceData(serviceRes.data.services);
+      setMonthlyData(monthlyRes.data.monthly_data);
     } catch (error) {
-      // Fall back to demo data
-      setAnalytics(demoAnalytics);
-      setServiceData(demoServiceData);
-      setMonthlyData(demoMonthlyData);
       toast({
-        title: 'Using demo data',
-        description: 'Could not connect to API. Showing sample data.',
+        title: 'Error',
+        description: 'Failed to load analytics data from server.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -76,67 +67,79 @@ const Analytics_ = () => {
   };
 
   const handleExportCSV = async () => {
-    let bookings;
-
-    // Use demo data if in demo mode
-    if (isDemo) {
-      bookings = demoBookings;
-    } else {
-      try {
-        const response = await bookingsApi.search({
-          date_from: exportDateFrom || undefined,
-          date_to: exportDateTo || undefined,
-          limit: 10000,
-        });
-        bookings = response.data.bookings || response.data || [];
-      } catch (error) {
-        // Fall back to demo data
-        bookings = demoBookings;
-      }
-    }
-    
-    if (bookings.length === 0) {
-      toast({
-        title: 'No data to export',
-        description: 'No bookings found for the selected date range.',
+    try {
+      const response = await bookingsApi.search({
+        date_from: exportDateFrom || undefined,
+        date_to: exportDateTo || undefined,
+        limit: 10000,
       });
-      return;
+
+      const bookings = response.data.bookings;
+
+      if (!bookings || bookings.length === 0) {
+        toast({
+          title: 'No data to export',
+          description: 'No bookings found for the selected date range.',
+        });
+        return;
+      }
+
+      const headers = [
+        'ID',
+        'Name',
+        'Email',
+        'Phone',
+        'Service',
+        'Package',
+        'Date',
+        'Status',
+        'Created At',
+      ];
+
+      const csvContent = [
+        headers.join(','),
+        ...bookings.map((b: any) =>
+          [
+            b._id,
+            `"${b.name}"`,
+            b.email,
+            b.phone,
+            `"${b.service}"`,
+            `"${b.package || ''}"`,
+            b.date,
+            b.status,
+            b.created_at,
+          ].join(',')
+        ),
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bookings_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Export successful',
+        description: `Exported ${bookings.length} bookings to CSV.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Export failed',
+        description: 'Unable to export bookings data.',
+        variant: 'destructive',
+      });
     }
-
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'Service', 'Package', 'Date', 'Status', 'Created At'];
-    const csvContent = [
-      headers.join(','),
-      ...bookings.map((b: any) => [
-        b._id,
-        `"${b.name}"`,
-        b.email,
-        b.phone,
-        `"${b.service}"`,
-        `"${b.package || ''}"`,
-        b.date,
-        b.status,
-        b.created_at,
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bookings_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-
-    toast({
-      title: 'Export successful',
-      description: `Exported ${bookings.length} bookings to CSV.`,
-    });
   };
 
-  const monthlyChartData = monthlyData.map((item) => ({
-    name: `${item.year}-${String(item.month).padStart(2, '0')}`,
-    bookings: item.count,
-  })).reverse();
+  const monthlyChartData = monthlyData
+    .map((item) => ({
+      name: `${item.year}-${String(item.month).padStart(2, '0')}`,
+      bookings: item.count,
+    }))
+    .reverse();
 
   const statsCards = [
     {
@@ -169,7 +172,9 @@ const Analytics_ = () => {
     <div className="space-y-8 animate-fade-in">
       {/* Page Header */}
       <div>
-        <h1 className="font-display text-3xl font-bold text-foreground">Analytics</h1>
+        <h1 className="font-display text-3xl font-bold text-foreground">
+          Analytics
+        </h1>
         <p className="text-muted-foreground mt-1">
           Insights and trends for your business
         </p>
@@ -182,17 +187,15 @@ const Analytics_ = () => {
         ))}
       </div>
 
-      {/* Charts Row */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bookings by Service */}
-        <div className="bg-card rounded-xl border border-border shadow-card p-6">
-          <h2 className="font-display text-lg font-semibold text-foreground mb-6">
+        {/* Pie Chart */}
+        <div className="bg-card rounded-xl border p-6">
+          <h2 className="font-display text-lg font-semibold mb-6">
             Bookings by Service
           </h2>
           {isLoading ? (
-            <div className="h-80 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
+            <div className="h-80 flex items-center justify-center">Loading…</div>
           ) : serviceData.length === 0 ? (
             <div className="h-80 flex items-center justify-center text-muted-foreground">
               No data available
@@ -209,10 +212,9 @@ const Analytics_ = () => {
                   paddingAngle={5}
                   dataKey="count"
                   nameKey="service"
-                  label={({ service, count }) => `${service}: ${count}`}
                 >
-                  {serviceData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {serviceData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -221,45 +223,25 @@ const Analytics_ = () => {
           )}
         </div>
 
-        {/* Monthly Trends */}
-        <div className="bg-card rounded-xl border border-border shadow-card p-6">
-          <h2 className="font-display text-lg font-semibold text-foreground mb-6">
+        {/* Line Chart */}
+        <div className="bg-card rounded-xl border p-6">
+          <h2 className="font-display text-lg font-semibold mb-6">
             Monthly Trends
           </h2>
           {isLoading ? (
-            <div className="h-80 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
-          ) : monthlyChartData.length === 0 ? (
-            <div className="h-80 flex items-center justify-center text-muted-foreground">
-              No data available
-            </div>
+            <div className="h-80 flex items-center justify-center">Loading…</div>
           ) : (
             <ResponsiveContainer width="100%" height={320}>
               <LineChart data={monthlyChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" fontSize={12} />
+                <YAxis fontSize={12} />
+                <Tooltip />
                 <Line
                   type="monotone"
                   dataKey="bookings"
                   stroke="hsl(var(--primary))"
                   strokeWidth={3}
-                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -267,79 +249,47 @@ const Analytics_ = () => {
         </div>
       </div>
 
-      {/* Service Bar Chart */}
-      <div className="bg-card rounded-xl border border-border shadow-card p-6">
-        <h2 className="font-display text-lg font-semibold text-foreground mb-6">
+      {/* Bar Chart */}
+      <div className="bg-card rounded-xl border p-6">
+        <h2 className="font-display text-lg font-semibold mb-6">
           Service Distribution
         </h2>
         {isLoading ? (
-          <div className="h-80 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          </div>
-        ) : serviceData.length === 0 ? (
-          <div className="h-80 flex items-center justify-center text-muted-foreground">
-            No data available
-          </div>
+          <div className="h-80 flex items-center justify-center">Loading…</div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={serviceData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="service" 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-              />
-              <Bar 
-                dataKey="count" 
-                fill="hsl(var(--primary))" 
-                radius={[8, 8, 0, 0]}
-              />
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="service" fontSize={12} />
+              <YAxis fontSize={12} />
+              <Tooltip />
+              <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
       </div>
 
-      {/* Export Section */}
-      <div className="bg-card rounded-xl border border-border shadow-card p-6">
-        <h2 className="font-display text-lg font-semibold text-foreground mb-4">
+      {/* Export */}
+      <div className="bg-card rounded-xl border p-6">
+        <h2 className="font-display text-lg font-semibold mb-4">
           Export Data
         </h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Download bookings data as a CSV file for the selected date range.
-        </p>
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">From:</span>
-            <Input
-              type="date"
-              value={exportDateFrom}
-              onChange={(e) => setExportDateFrom(e.target.value)}
-              className="w-40"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">To:</span>
-            <Input
-              type="date"
-              value={exportDateTo}
-              onChange={(e) => setExportDateTo(e.target.value)}
-              className="w-40"
-            />
-          </div>
-          <Button onClick={handleExportCSV} className="gradient-primary text-primary-foreground">
+          <Input
+            type="date"
+            value={exportDateFrom}
+            onChange={(e) => setExportDateFrom(e.target.value)}
+            className="w-40"
+          />
+          <Input
+            type="date"
+            value={exportDateTo}
+            onChange={(e) => setExportDateTo(e.target.value)}
+            className="w-40"
+          />
+          <Button onClick={handleExportCSV} className="gradient-primary">
             <Download className="h-4 w-4 mr-2" />
-            Export to CSV
+            Export CSV
           </Button>
         </div>
       </div>
@@ -347,4 +297,4 @@ const Analytics_ = () => {
   );
 };
 
-export default Analytics_;
+export default AnalyticsPage;

@@ -4,18 +4,25 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, ArrowLeft, Mail, Sparkles } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authApi } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 
+/* ---------------------------------------
+   Validation Schema
+--------------------------------------- */
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
+/* ---------------------------------------
+   Component
+--------------------------------------- */
 const ForgotPasswordForm = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -29,27 +36,35 @@ const ForgotPasswordForm = () => {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
+  /* ---------------------------------------
+     Submit Handler
+  --------------------------------------- */
   const onSubmit = async (data: ForgotPasswordFormData) => {
     setIsLoading(true);
+
     try {
       await authApi.forgotPassword(data.email);
-      setIsSubmitted(true);
-      toast({
-        title: 'Email sent',
-        description: 'If your email is registered, you will receive a reset link.',
-      });
-    } catch (error) {
-      // Always show the same message for security
-      setIsSubmitted(true);
-      toast({
-        title: 'Email sent',
-        description: 'If your email is registered, you will receive a reset link.',
-      });
+    } catch {
+      /**
+       * IMPORTANT:
+       * We intentionally ignore backend errors here
+       * to avoid email enumeration and UI confusion.
+       */
     } finally {
+      setIsSubmitted(true);
       setIsLoading(false);
+
+      toast({
+        title: 'Check your email',
+        description:
+          'If your email is registered, you will receive a password reset link shortly.',
+      });
     }
   };
 
+  /* ---------------------------------------
+     UI
+  --------------------------------------- */
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/30 to-background p-4">
       <div className="w-full max-w-md">
@@ -67,6 +82,9 @@ const ForgotPasswordForm = () => {
         {/* Card */}
         <div className="bg-card rounded-2xl shadow-card-hover p-8 animate-slide-up border border-border/50">
           {isSubmitted ? (
+            /* ---------------------------------------
+               Success State
+            --------------------------------------- */
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-success/10 mb-4">
                 <Mail className="h-6 w-6 text-success" />
@@ -85,12 +103,15 @@ const ForgotPasswordForm = () => {
               </Link>
             </div>
           ) : (
+            /* ---------------------------------------
+               Form State
+            --------------------------------------- */
             <>
               <h2 className="font-display text-xl font-semibold text-center mb-2">
                 Forgot password?
               </h2>
               <p className="text-muted-foreground text-sm text-center mb-6">
-                Enter your email address and we'll send you a reset link.
+                Enter your email address and we’ll send you a reset link.
               </p>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -105,7 +126,9 @@ const ForgotPasswordForm = () => {
                     disabled={isLoading}
                   />
                   {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 

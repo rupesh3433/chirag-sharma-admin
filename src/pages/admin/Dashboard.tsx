@@ -1,52 +1,45 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, Clock, ArrowRight, TrendingUp, AlertCircle } from 'lucide-react';
+import {
+  Calendar,
+  CheckCircle,
+  Clock,
+  ArrowRight,
+  TrendingUp,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentBookings from '@/components/dashboard/RecentBookings';
 import { analyticsApi, bookingsApi } from '@/services/api';
 import { Analytics, Booking } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { demoAnalytics, demoBookings } from '@/data/demoData';
 
 const Dashboard = () => {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { isDemo } = useAuth();
 
   useEffect(() => {
     fetchData();
-  }, [isDemo]);
+  }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
-    
-    // Use demo data if in demo mode
-    if (isDemo) {
-      setAnalytics(demoAnalytics);
-      setRecentBookings(demoBookings.slice(0, 5));
-      setIsLoading(false);
-      return;
-    }
 
     try {
       const [analyticsRes, bookingsRes] = await Promise.all([
         analyticsApi.getOverview(),
         bookingsApi.getAll({ limit: 5 }),
       ]);
+
       setAnalytics(analyticsRes.data);
-      setRecentBookings(bookingsRes.data.bookings || bookingsRes.data || []);
+      setRecentBookings(bookingsRes.data.bookings);
     } catch (error) {
-      // Fall back to demo data if API fails
-      setAnalytics(demoAnalytics);
-      setRecentBookings(demoBookings.slice(0, 5));
       toast({
-        title: 'Using demo data',
-        description: 'Could not connect to API. Showing sample data.',
+        title: 'Error',
+        description: 'Failed to load dashboard data from server.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -86,19 +79,11 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Demo Mode Banner */}
-      {isDemo && (
-        <Alert className="border-warning/50 bg-warning/10">
-          <AlertCircle className="h-4 w-4 text-warning" />
-          <AlertDescription className="text-warning">
-            <strong>Demo Mode:</strong> You're viewing sample data. Connect your backend API for real data.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Page Header */}
       <div>
-        <h1 className="font-display text-3xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="font-display text-3xl font-bold text-foreground">
+          Dashboard
+        </h1>
         <p className="text-muted-foreground mt-1">
           Welcome back! Here's an overview of your business.
         </p>
@@ -131,7 +116,11 @@ const Dashboard = () => {
             </Button>
           </Link>
         </div>
-        <RecentBookings bookings={recentBookings} isLoading={isLoading} />
+
+        <RecentBookings
+          bookings={recentBookings}
+          isLoading={isLoading}
+        />
       </div>
 
       {/* Quick Stats */}
@@ -143,7 +132,9 @@ const Dashboard = () => {
             </div>
             <div>
               <h3 className="font-medium text-foreground">OTP Pending</h3>
-              <p className="text-sm text-muted-foreground">Awaiting verification</p>
+              <p className="text-sm text-muted-foreground">
+                Awaiting verification
+              </p>
             </div>
           </div>
           <p className="text-4xl font-bold font-display text-foreground">
@@ -158,7 +149,9 @@ const Dashboard = () => {
             </div>
             <div>
               <h3 className="font-medium text-foreground">Last 7 Days</h3>
-              <p className="text-sm text-muted-foreground">Recent activity</p>
+              <p className="text-sm text-muted-foreground">
+                Recent activity
+              </p>
             </div>
           </div>
           <p className="text-4xl font-bold font-display text-foreground">
