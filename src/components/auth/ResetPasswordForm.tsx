@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle, Sparkles } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ArrowLeft, CheckCircle, Sparkles, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -73,11 +73,18 @@ const ResetPasswordForm = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/30 to-background p-4">
         <div className="bg-card rounded-2xl shadow-card-hover p-8 max-w-md w-full text-center border border-border/50">
+          {/* Security Warning */}
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10 mb-4">
+            <ShieldAlert className="h-6 w-6 text-destructive" />
+          </div>
           <h2 className="font-display text-xl font-semibold text-destructive mb-2">
             Invalid Reset Link
           </h2>
-          <p className="text-muted-foreground text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-2">
             The password reset link is invalid or has expired.
+          </p>
+          <p className="text-xs text-muted-foreground mb-6">
+            If you're not an authorized admin, you cannot access this page.
           </p>
           <Link to="/admin/forgot-password">
             <Button className="w-full">Request new link</Button>
@@ -136,7 +143,7 @@ const ResetPasswordForm = () => {
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter new password"
+                      placeholder="Enter new password (min. 8 characters)"
                       {...register('password')}
                       className="h-11 pr-10"
                       disabled={isLoading}

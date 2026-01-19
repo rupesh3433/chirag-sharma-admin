@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, ArrowLeft, Mail, Sparkles } from 'lucide-react';
+import { Loader2, ArrowLeft, Mail, Sparkles, AlertTriangle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,13 @@ const ForgotPasswordForm = () => {
         description:
           'If your email is registered, you will receive a password reset link shortly.',
       });
+
+      // Additional warning for non-admins
+      toast({
+        title: '⚠️ Admin Access Only',
+        description: 'Only authorized admin accounts will receive the reset link.',
+        variant: 'default',
+      });
     }
   };
 
@@ -107,20 +114,36 @@ const ForgotPasswordForm = () => {
                Form State
             --------------------------------------- */
             <>
+              {/* Admin Warning Banner */}
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                      Admin Access Only
+                    </p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                      Password reset is restricted to authorized admin accounts only.
+                      If you're not an admin, please contact support.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <h2 className="font-display text-xl font-semibold text-center mb-2">
                 Forgot password?
               </h2>
               <p className="text-muted-foreground text-sm text-center mb-6">
-                Enter your email address and we’ll send you a reset link.
+                Enter your email address and we'll send you a reset link.
               </p>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Admin Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Enter your admin email"
                     {...register('email')}
                     className="h-11"
                     disabled={isLoading}
