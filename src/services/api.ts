@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { Knowledge } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -118,4 +119,24 @@ export const analyticsApi = {
 
   getByMonth: () =>
     api.get('/admin/analytics/by-month'),
+};
+
+/* =======================================================
+   KNOWLEDGE BASE API  ✅ ADDED
+======================================================= */
+export const knowledgeApi = {
+  getAll: (params?: { language?: string; is_active?: boolean }) =>
+    api.get<Knowledge[]>('/admin/knowledge', { params }),
+
+  getById: (id: string) =>
+    api.get<Knowledge>(`/admin/knowledge/${id}`),
+
+  create: (data: Omit<Knowledge, '_id' | 'created_at' | 'updated_at'>) =>
+    api.post('/admin/knowledge', data),
+
+  update: (id: string, data: Partial<Knowledge>) =>
+    api.patch(`/admin/knowledge/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete(`/admin/knowledge/${id}`),
 };

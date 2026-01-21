@@ -2,7 +2,7 @@ import { LogOut, Menu, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,18 +15,32 @@ import {
 const AdminHeader = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { toggleSidebar, setOpen, isMobile } = useSidebar();
 
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
   };
 
+  const handleMenuClick = () => {
+    if (isMobile) {
+      setOpen(true); // Mobile: open drawer
+    } else {
+      toggleSidebar(); // Desktop: toggle collapsed state
+    }
+  };
+
   return (
-    <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between px-4 sticky top-0 z-10">
+    <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between px-4 sticky top-0 z-[5]">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="text-muted-foreground hover:text-foreground">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleMenuClick}
+          className="text-muted-foreground hover:text-foreground"
+        >
           <Menu className="h-5 w-5" />
-        </SidebarTrigger>
+        </Button>
       </div>
 
       <DropdownMenu>

@@ -17,7 +17,7 @@ export interface Booking {
   date: string;
   message?: string;
   otp_verified: boolean;
-  status: 'otp_pending' | 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'approved' | 'completed' | 'cancelled';
   created_at: string;
   updated_at?: string;
 }
@@ -25,6 +25,7 @@ export interface Booking {
 export interface Analytics {
   total_bookings: number;
   pending_bookings: number;
+  approved_bookings: number;
   completed_bookings: number;
   cancelled_bookings: number;
   otp_pending: number;
@@ -57,4 +58,14 @@ export interface BookingSearchParams {
   date_to?: string;
   limit?: number;
   skip?: number;
+}
+
+export interface Knowledge {
+  _id: string;
+  title: string;
+  content: string;
+  language: 'en' | 'ne' | 'hi' | 'mr';
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string | null;
 }

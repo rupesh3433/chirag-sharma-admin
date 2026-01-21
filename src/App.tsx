@@ -16,6 +16,7 @@ import Bookings from "@/pages/admin/Bookings";
 import Analytics from "@/pages/admin/Analytics";
 
 import NotFound from "./pages/NotFound";
+import Knowledge from "./pages/admin/Knowledge";
 
 const queryClient = new QueryClient();
 
@@ -41,10 +42,15 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route
+                index
+                element={<Navigate to="/admin/dashboard" replace />}
+              />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="bookings" element={<Bookings />} />
               <Route path="analytics" element={<Analytics />} />
+              {/* ✅ Knowledge Base */}
+              <Route path="knowledge" element={<Knowledge />} />
             </Route>
 
             {/* Redirect root to admin login */}
