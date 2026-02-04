@@ -14,9 +14,14 @@ import ResetPassword from "@/pages/admin/ResetPassword";
 import Dashboard from "@/pages/admin/Dashboard";
 import Bookings from "@/pages/admin/Bookings";
 import Analytics from "@/pages/admin/Analytics";
+import Knowledge from "@/pages/admin/Knowledge";
+
+// Event Pages
+import Events from "@/pages/admin/Events";
+import EventCreate from "@/pages/admin/EventCreate";
+import EventDetail from "@/pages/admin/EventDetail";
 
 import NotFound from "./pages/NotFound";
-import Knowledge from "./pages/admin/Knowledge";
 
 const queryClient = new QueryClient();
 
@@ -49,8 +54,13 @@ const App = () => (
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="bookings" element={<Bookings />} />
               <Route path="analytics" element={<Analytics />} />
-              {/* ✅ Knowledge Base */}
               <Route path="knowledge" element={<Knowledge />} />
+              
+              {/* Event Routes */}
+              <Route path="events" element={<Events />} />
+              <Route path="events/create" element={<EventCreate />} />
+              <Route path="events/:id" element={<EventDetail />} />
+              <Route path="events/edit/:id" element={<EventCreate />} />
             </Route>
 
             {/* Redirect root to admin login */}

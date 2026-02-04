@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { Knowledge } from '@/types';
+import { Knowledge, Event, EventStatus, PriceCategory, CreateEventDto } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -122,7 +122,7 @@ export const analyticsApi = {
 };
 
 /* =======================================================
-   KNOWLEDGE BASE API  ✅ ADDED
+   KNOWLEDGE BASE API
 ======================================================= */
 export const knowledgeApi = {
   getAll: (params?: { language?: string; is_active?: boolean }) =>
@@ -139,4 +139,79 @@ export const knowledgeApi = {
 
   delete: (id: string) =>
     api.delete(`/admin/knowledge/${id}`),
+};
+
+/* =======================================================
+   EVENTS API 
+======================================================= */
+export const eventsApi = {
+  // Image upload
+  uploadImage: (file: File, folder: string = 'events') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post<{
+      url: string;
+      public_id: string;
+      width: number;
+      height: number;
+      format: string;
+    }>('/admin/events/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  deleteImage: (public_id: string) =>
+    api.delete<{ success: boolean }>(`/admin/events/delete-image/${public_id}`),
+
+  // Events CRUD
+  getAll: (params?: {
+    status?: EventStatus;
+    is_active?: boolean;
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) => 
+    api.get<{
+      events: Event[];
+      total: number;
+      page: number;
+      limit: number;
+      total_pages: number;
+    }>('/admin/events', { params }),
+
+  getById: (id: string) => api.get<Event>(`/admin/events/${id}`),
+
+  create: (data: FormData) =>
+    api.post<{ message: string; event: Event }>('/admin/events', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  update: (id: string, data: Partial<Event>) =>
+    api.put<{ message: string; event: Event }>(`/admin/events/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete<{ message: string }>(`/admin/events/${id}`),
+
+  updateStatus: (id: string, status: EventStatus) =>
+    api.patch<{ message: string }>(`/admin/events/${id}/status`, null, {
+      params: { status }
+    }),
+
+  toggleActive: (id: string) =>
+    api.patch<{ message: string; is_active: boolean }>(`/admin/events/${id}/toggle-active`),
+
+  uploadGalleryImages: (id: string, images: File[]) => {
+    const formData = new FormData();
+    images.forEach((image) => {
+      formData.append('images', image);
+    });
+    return api.post<{ message: string; new_images: string[] }>(
+      `/admin/events/${id}/upload-gallery`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+  },
+
+  deleteGalleryImage: (eventId: string, imageIndex: number) =>
+    api.delete<{ message: string }>(`/admin/events/${eventId}/gallery/${imageIndex}`),
 };

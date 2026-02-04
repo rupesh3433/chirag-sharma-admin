@@ -6,6 +6,7 @@ import {
   BarChart3,
   Sparkles,
   BookOpen,
+  CalendarDays,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -23,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 const menuItems = [
   { title: 'Dashboard', url: '/admin/dashboard', icon: LayoutDashboard },
   { title: 'Bookings', url: '/admin/bookings', icon: Calendar },
+  { title: 'Events', url: '/admin/events', icon: CalendarDays },
   { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
   { title: 'Knowledge Base', url: '/admin/knowledge', icon: BookOpen },
 ];
