@@ -23,6 +23,7 @@ const LoginForm = () => {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Signing in...');
 
   const {
     register,
@@ -34,21 +35,64 @@ const LoginForm = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    setLoadingMessage('Signing in...');
+
+    // Progressive loading messages to keep user informed
+    const messageTimer1 = setTimeout(() => {
+      setLoadingMessage('Connecting to server...');
+    }, 5000); // 5 seconds
+
+    const messageTimer2 = setTimeout(() => {
+      setLoadingMessage('Verifying credentials...');
+    }, 15000); // 15 seconds
+
+    const messageTimer3 = setTimeout(() => {
+      setLoadingMessage('Almost there...');
+    }, 30000); // 30 seconds
+
+    const messageTimer4 = setTimeout(() => {
+      setLoadingMessage('Please wait, server is responding...');
+    }, 45000); // 45 seconds
+
     try {
+      // Login with extended timeout (90 seconds handled by axios)
       await login(data.email, data.password);
+
+      // Clear all timers on success
+      clearTimeout(messageTimer1);
+      clearTimeout(messageTimer2);
+      clearTimeout(messageTimer3);
+      clearTimeout(messageTimer4);
+
       toast({
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       });
+      
       navigate('/admin/dashboard');
     } catch (error: any) {
+      // Clear all timers on error
+      clearTimeout(messageTimer1);
+      clearTimeout(messageTimer2);
+      clearTimeout(messageTimer3);
+      clearTimeout(messageTimer4);
+
+      // Extract error message from various sources
+      const errorMessage = 
+        error.message || 
+        error.response?.data?.detail || 
+        error.response?.data?.message ||
+        'Invalid email or password. Please try again.';
+      
       toast({
         title: 'Login failed',
-        description: 'Invalid email or password. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
+        duration: 6000, // Show error for 6 seconds
       });
     } finally {
       setIsLoading(false);
+      setLoadingMessage('Signing in...');
     }
   };
 
@@ -104,6 +148,7 @@ const LoginForm = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
+                  disabled={isLoading}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -113,6 +158,21 @@ const LoginForm = () => {
               )}
             </div>
 
+            {/* Loading Status - Shows when request is in progress */}
+            {isLoading && (
+              <div className="flex flex-col items-center justify-center py-2 space-y-2 bg-muted/50 rounded-lg px-4">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground animate-pulse font-medium">
+                    {loadingMessage}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  This may take up to a minute. Please don't close this page.
+                </p>
+              </div>
+            )}
+
             <Button
               type="submit"
               className="w-full h-11 gradient-primary text-primary-foreground font-medium shadow-rose hover:opacity-90 transition-opacity"
@@ -121,7 +181,7 @@ const LoginForm = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Please wait...
                 </>
               ) : (
                 'Sign in'

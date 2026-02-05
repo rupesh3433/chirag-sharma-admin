@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -19,7 +19,12 @@ import {
   SidebarHeader,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const menuItems = [
   { title: 'Dashboard', url: '/admin/dashboard', icon: LayoutDashboard },
@@ -34,6 +39,7 @@ const AdminSidebar = () => {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const navigate = useNavigate();
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
   /* DESKTOP - Save collapsed state to localStorage */
   useEffect(() => {
@@ -49,6 +55,15 @@ const AdminSidebar = () => {
     if (isMobile) {
       setOpen(false);
     }
+  };
+
+  /* Handle tooltip open/close */
+  const handleTooltipOpen = (itemTitle: string) => {
+    setActiveTooltip(itemTitle);
+  };
+
+  const handleTooltipClose = () => {
+    setActiveTooltip(null);
   };
 
   /* ============================================
@@ -134,44 +149,64 @@ const AdminSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
-                const isActive = location.pathname.startsWith(item.url);
-                const Icon = item.icon;
+              <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+                {menuItems.map((item) => {
+                  const isActive = location.pathname.startsWith(item.url);
+                  const Icon = item.icon;
+                  const showTooltip = collapsed && activeTooltip === item.title;
 
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <Tooltip delayDuration={200}>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <button
-                            onClick={() => handleNavigate(item.url)}
-                            className={`
-                              w-full flex items-center
-                              ${collapsed ? 'justify-center px-2' : 'justify-start px-3'}
-                              py-2.5 rounded-lg transition-colors
-                              ${
-                                isActive
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'hover:bg-sidebar-accent'
-                              }
-                            `}
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <Tooltip 
+                        open={showTooltip}
+                        onOpenChange={(open) => {
+                          if (open) {
+                            handleTooltipOpen(item.title);
+                          } else {
+                            handleTooltipClose();
+                          }
+                        }}
+                      >
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild>
+                            <button
+                              onClick={() => handleNavigate(item.url)}
+                              onMouseEnter={() => collapsed && handleTooltipOpen(item.title)}
+                              onMouseLeave={handleTooltipClose}
+                              className={`
+                                w-full flex items-center
+                                ${collapsed ? 'justify-center px-2' : 'justify-start px-3'}
+                                py-2.5 rounded-lg transition-colors
+                                ${
+                                  isActive
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'hover:bg-sidebar-accent'
+                                }
+                              `}
+                            >
+                              <span className="w-6 h-6 flex items-center justify-center">
+                                <Icon className="h-5 w-5" />
+                              </span>
+                              {!collapsed && (
+                                <span className="ml-3 font-medium">{item.title}</span>
+                              )}
+                            </button>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent 
+                            side="right" 
+                            sideOffset={5}
+                            className="animate-in fade-in-0 zoom-in-95 duration-0"
                           >
-                            <span className="w-6 h-6 flex items-center justify-center">
-                              <Icon className="h-5 w-5" />
-                            </span>
-                            {!collapsed && (
-                              <span className="ml-3 font-medium">{item.title}</span>
-                            )}
-                          </button>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {collapsed && (
-                        <TooltipContent side="right">{item.title}</TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
-                );
-              })}
+                            {item.title}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </TooltipProvider>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

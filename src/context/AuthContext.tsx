@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '@/services/api';
 import { Admin } from '@/types';
@@ -31,7 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authApi.verifyToken();
       setUser(response.data);
-    } catch {
+    } catch (error: any) {
+      // Clear invalid tokens
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
       setUser(null);
@@ -52,8 +54,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
 
       setUser({ email: userEmail, role });
-    } catch {
-      throw new Error('Invalid credentials');
+    } catch (error: any) {
+      // Handle timeout errors (from axios interceptor)
+      if (error.isTimeout || error.code === 'TIMEOUT') {
+        throw new Error('Connection timeout - the server is taking too long to respond. Please try again.');
+      }
+      
+      // Handle network errors (from axios interceptor)
+      if (error.isNetworkError || error.code === 'NETWORK_ERROR') {
+        throw new Error('Network error - please check your internet connection and try again.');
+      }
+
+      // Handle API error responses
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.detail || error.response.data?.message;
+
+        // 401 or 403 - Invalid credentials
+        if (status === 401 || status === 403) {
+          throw new Error('Invalid email or password. Please try again.');
+        }
+
+        // 422 - Validation error
+        if (status === 422) {
+          throw new Error('Invalid input. Please check your email and password.');
+        }
+
+        // 429 - Too many requests
+        if (status === 429) {
+          throw new Error('Too many login attempts. Please wait a few minutes and try again.');
+        }
+
+        // 500+ - Server errors
+        if (status >= 500) {
+          throw new Error('Server error - please try again later or contact support.');
+        }
+
+        // Other errors with message from backend
+        if (message) {
+          throw new Error(message);
+        }
+
+        throw new Error('Login failed. Please try again.');
+      }
+
+      // Generic error fallback
+      throw new Error('An unexpected error occurred. Please try again.');
     }
   };
 

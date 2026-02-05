@@ -4,14 +4,14 @@ import { Knowledge, Event, EventStatus, PriceCategory, CreateEventDto } from '@/
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 /* -------------------------------------------------------
-   Axios instance
+   Axios instance with EXTENDED TIMEOUT for slow backend
 ------------------------------------------------------- */
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 90000, // 90 seconds timeout for slow backend responses
 });
 
 /* -------------------------------------------------------
@@ -35,10 +35,29 @@ api.interceptors.request.use(
    Response Interceptor
    → Logout ONLY for protected routes
    → Never break forgot/reset password flow
+   → Handle timeout and network errors gracefully
 ------------------------------------------------------- */
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<any>) => {
+    // Handle timeout errors
+    if (error.code === 'ECONNABORTED') {
+      return Promise.reject({
+        message: 'Request timeout - server took too long to respond. Please try again.',
+        code: 'TIMEOUT',
+        isTimeout: true,
+      });
+    }
+
+    // Handle network errors
+    if (!error.response) {
+      return Promise.reject({
+        message: 'Network error - please check your internet connection.',
+        code: 'NETWORK_ERROR',
+        isNetworkError: true,
+      });
+    }
+
     const status = error.response?.status;
     const currentPath = window.location.pathname;
 
@@ -47,6 +66,7 @@ api.interceptors.response.use(
       currentPath.startsWith('/admin/reset-password') ||
       currentPath.startsWith('/admin/login');
 
+    // Only logout for 401 on protected routes
     if (status === 401 && !isAuthRoute) {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
@@ -157,6 +177,7 @@ export const eventsApi = {
       format: string;
     }>('/admin/events/upload-image', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000, // 2 minutes for image uploads
     });
   },
 
@@ -184,25 +205,43 @@ export const eventsApi = {
   create: (data: FormData) =>
     api.post<{ message: string; event: Event }>('/admin/events', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000, // 2 minutes for creating events with images
     }),
 
   updateWithFiles: async (id: string, formData: FormData) => {
     const token = localStorage.getItem('admin_token');
-    const response = await fetch(`${API_BASE_URL}/admin/events/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        // Don't set Content-Type - let browser set it with boundary for FormData
-      },
-      body: formData,
-    });
     
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to update event');
+    // Create abort controller for manual timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/events/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type - let browser set it with boundary for FormData
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to update event');
+      }
+      
+      return response.json();
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - upload took too long. Please try again.');
+      }
+      throw error;
     }
-    
-    return response.json();
   },
   
   update: (id: string, data: Partial<Event>) =>
@@ -227,7 +266,10 @@ export const eventsApi = {
     return api.post<{ message: string; new_images: string[] }>(
       `/admin/events/${id}/upload-gallery`,
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+      { 
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000, // 2 minutes for gallery uploads
+      }
     );
   },
 
