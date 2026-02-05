@@ -29,6 +29,7 @@ const EventCreate = () => {
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([]);
+  const [existingMainPosterUrl, setExistingMainPosterUrl] = useState<string>('');
   const [isEditMode, setIsEditMode] = useState(!!id);
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
@@ -40,18 +41,13 @@ const EventCreate = () => {
     time_from: '',
     time_to: '',
     location: '',
-    location_coords: { lat: 0, lng: 0 }, // Start with 0,0 - will be auto-detected
+    location_coords: { lat: 0, lng: 0 },
     total_seats: 0,
     is_active: true,
     status: 'draft' as 'draft' | 'published' | 'cancelled' | 'completed',
   });
 
-  // Fetch user's current location on component mount (only for new events)
-  useEffect(() => {
-    if (!id) {
-      fetchCurrentLocation();
-    }
-  }, [id]);
+  // DON'T auto-fetch location on mount - only when user clicks button
 
   const fetchCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -77,7 +73,12 @@ const EventCreate = () => {
         // Reverse geocode to get address
         try {
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            {
+              headers: {
+                'User-Agent': 'EventManagementApp/1.0'
+              }
+            }
           );
           const data = await response.json();
           
@@ -89,7 +90,7 @@ const EventCreate = () => {
             
             toast({
               title: 'Location detected',
-              description: 'Your current location has been set as default.',
+              description: 'Your current location has been set.',
             });
           }
         } catch (error) {
@@ -168,6 +169,7 @@ const EventCreate = () => {
       
       setPriceCategories(event.price_details || []);
       setExistingGalleryUrls(event.gallery_images || []);
+      setExistingMainPosterUrl(event.main_poster_url || '');
     }
   }, [existingEventResponse, id]);
 
@@ -192,22 +194,22 @@ const EventCreate = () => {
     },
   });
 
-  // Update event mutation
+  // Update event mutation - NOW SUPPORTS FILE UPLOAD
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Event> }) => {
-      return await eventsApi.update(id, data);
+    mutationFn: async ({ id, data }: { id: string; data: FormData }) => {
+      return await eventsApi.updateWithFiles(id, data);
     },
     onSuccess: (response) => {
       toast({
         title: 'Success',
-        description: response.data.message,
+        description: response.message,
       });
       navigate('/admin/events');
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: error.response?.data?.detail || 'Failed to update event',
+        description: error.message || 'Failed to update event',
         variant: 'destructive',
       });
     },
@@ -256,6 +258,10 @@ const EventCreate = () => {
   const handleMainImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setMainImage(e.target.files[0]);
+      // Clear existing poster URL when new image is selected
+      if (isEditMode) {
+        setExistingMainPosterUrl('');
+      }
     }
   };
 
@@ -272,6 +278,11 @@ const EventCreate = () => {
 
   const removeExistingGalleryImage = (index: number) => {
     setExistingGalleryUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeMainImage = () => {
+    setMainImage(null);
+    setExistingMainPosterUrl('');
   };
 
   const handleLocationSelect = (coords: { lat: number; lng: number }, address?: string) => {
@@ -315,31 +326,30 @@ const EventCreate = () => {
       return;
     }
 
-    if (isEditMode && id) {
-      const eventData = {
+    const submitFormData = new FormData();
+    submitFormData.append(
+      'event_data',
+      JSON.stringify({
         ...formData,
         price_details: priceCategories,
         gallery_images: existingGalleryUrls,
-      };
-      updateMutation.mutate({ id, data: eventData });
+        main_poster_url: existingMainPosterUrl,
+      })
+    );
+
+    // Add main poster if new one is selected
+    if (mainImage) {
+      submitFormData.append('main_poster', mainImage);
+    }
+
+    // Add new gallery images
+    galleryImages.forEach((image) => {
+      submitFormData.append('gallery_images', image);
+    });
+
+    if (isEditMode && id) {
+      updateMutation.mutate({ id, data: submitFormData });
     } else {
-      const submitFormData = new FormData();
-      submitFormData.append(
-        'event_data',
-        JSON.stringify({
-          ...formData,
-          price_details: priceCategories,
-        })
-      );
-
-      if (mainImage) {
-        submitFormData.append('main_poster', mainImage);
-      }
-
-      galleryImages.forEach((image) => {
-        submitFormData.append('gallery_images', image);
-      });
-
       createMutation.mutate(submitFormData);
     }
   };
@@ -653,25 +663,38 @@ const EventCreate = () => {
               <div className="space-y-4">
                 <Label>Main Poster Image {!isEditMode && '*'}</Label>
                 <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  {mainImage || (isEditMode && existingEventResponse?.main_poster_url) ? (
+                  {mainImage || existingMainPosterUrl ? (
                     <div className="space-y-4">
                       <div className="w-full bg-gray-50 rounded-lg p-4">
                         <img
-                          src={mainImage ? URL.createObjectURL(mainImage) : existingEventResponse?.main_poster_url}
+                          src={mainImage ? URL.createObjectURL(mainImage) : existingMainPosterUrl}
                           alt="Preview"
                           className="w-full h-auto mx-auto"
                         />
                       </div>
-                      {!isEditMode && (
+                      <div className="flex gap-2 justify-center">
                         <Button
                           variant="outline"
-                          onClick={() => setMainImage(null)}
+                          onClick={removeMainImage}
                           className="text-red-600"
+                          type="button"
                         >
                           <X className="mr-2 h-4 w-4" />
                           Remove Image
                         </Button>
-                      )}
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleMainImageUpload}
+                          className="hidden"
+                          id="change-main-image"
+                        />
+                        <Label htmlFor="change-main-image">
+                          <Button asChild variant="outline" type="button">
+                            <span>Change Image</span>
+                          </Button>
+                        </Label>
+                      </div>
                     </div>
                   ) : (
                     <div>
@@ -688,7 +711,7 @@ const EventCreate = () => {
                         id="main-image"
                       />
                       <Label htmlFor="main-image">
-                        <Button asChild variant="outline" className="mt-4">
+                        <Button asChild variant="outline" className="mt-4" type="button">
                           <span>Choose File</span>
                         </Button>
                       </Label>
@@ -714,7 +737,7 @@ const EventCreate = () => {
                     multiple
                   />
                   <Label htmlFor="gallery-images">
-                    <Button asChild variant="outline" className="mt-4">
+                    <Button asChild variant="outline" className="mt-4" type="button">
                       <span>Choose Files</span>
                     </Button>
                   </Label>
@@ -732,16 +755,15 @@ const EventCreate = () => {
                             className="w-full h-auto"
                           />
                         </div>
-                        {isEditMode && (
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removeExistingGalleryImage(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeExistingGalleryImage(index)}
+                          type="button"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                     {galleryImages.map((image, index) => (
@@ -758,6 +780,7 @@ const EventCreate = () => {
                           variant="destructive"
                           className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => removeGalleryImage(index)}
+                          type="button"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -772,12 +795,12 @@ const EventCreate = () => {
           {/* Navigation buttons */}
           <div className="flex justify-between mt-8">
             {step > 1 && (
-              <Button variant="outline" onClick={() => setStep(step - 1)}>
+              <Button variant="outline" onClick={() => setStep(step - 1)} type="button">
                 Previous
               </Button>
             )}
             {step < 3 ? (
-              <Button onClick={() => setStep(step + 1)} className="ml-auto">
+              <Button onClick={() => setStep(step + 1)} className="ml-auto" type="button">
                 Next
               </Button>
             ) : (
@@ -785,6 +808,7 @@ const EventCreate = () => {
                 onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="ml-auto"
+                type="button"
               >
                 {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Event' : 'Create Event')}
               </Button>

@@ -186,6 +186,25 @@ export const eventsApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 
+  updateWithFiles: async (id: string, formData: FormData) => {
+    const token = localStorage.getItem('admin_token');
+    const response = await fetch(`${API_BASE_URL}/admin/events/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type - let browser set it with boundary for FormData
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update event');
+    }
+    
+    return response.json();
+  },
+  
   update: (id: string, data: Partial<Event>) =>
     api.put<{ message: string; event: Event }>(`/admin/events/${id}`, data),
 
