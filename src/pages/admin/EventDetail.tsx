@@ -51,17 +51,17 @@ const EventDetail = () => {
   const allImages = [event.main_poster_url, ...(event.gallery_images || [])];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate('/admin/events')}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3 sm:gap-4 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => navigate('/admin/events')} size="sm" className="sm:size-default flex-shrink-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            <span className="hidden sm:inline">Back</span>
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-            <div className="flex items-center gap-2 mt-2">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">{event.title}</h1>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <Badge className={getStatusColor(event.status)}>
                 {event.status}
               </Badge>
@@ -77,24 +77,24 @@ const EventDetail = () => {
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => navigate(`/admin/events/edit/${event._id}`)}>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button onClick={() => navigate(`/admin/events/edit/${event._id}`)} className="flex-1 sm:flex-none" size="sm">
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="flex-1 sm:flex-none" size="sm">
             <Share2 className="mr-2 h-4 w-4" />
             Share
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Left Column - Images */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           {/* Main Image - FULL SIZE WITHOUT CROPPING */}
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {allImages.length > 0 ? (
                 <div className="w-full bg-gray-50 rounded-lg overflow-hidden">
                   <img
@@ -104,14 +104,14 @@ const EventDetail = () => {
                   />
                 </div>
               ) : (
-                <div className="w-full h-96 flex items-center justify-center bg-gray-100 rounded-lg">
-                  <ImageIcon className="h-24 w-24 text-gray-400" />
+                <div className="w-full h-64 sm:h-96 flex items-center justify-center bg-gray-100 rounded-lg">
+                  <ImageIcon className="h-16 w-16 sm:h-24 sm:w-24 text-gray-400" />
                 </div>
               )}
 
               {/* Thumbnails */}
               {allImages.length > 1 && (
-                <div className="mt-4 grid grid-cols-6 gap-2">
+                <div className="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {allImages.map((image, index) => (
                     <button
                       key={index}
@@ -135,31 +135,31 @@ const EventDetail = () => {
           {/* Event Description */}
           <Card>
             <CardHeader>
-              <CardTitle>Description</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-line">{event.bio}</p>
+              <p className="whitespace-pre-line text-sm sm:text-base">{event.bio}</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Right Column - Details */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Event Details */}
           <Card>
             <CardHeader>
-              <CardTitle>Event Details</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Event Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <div className="font-medium">Date & Time</div>
-                  <div className="text-sm text-muted-foreground">
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm sm:text-base">Date & Time</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     {new Date(event.date_from).toLocaleDateString()} -{' '}
                     {new Date(event.date_to).toLocaleDateString()}
                   </div>
-                  <div className="text-sm">
+                  <div className="text-xs sm:text-sm">
                     {event.time_from} - {event.time_to}
                   </div>
                 </div>
@@ -167,11 +167,11 @@ const EventDetail = () => {
 
               <Separator />
 
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <div className="font-medium">Location</div>
-                  <div className="text-sm">{event.location}</div>
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm sm:text-base">Location</div>
+                  <div className="text-xs sm:text-sm break-words">{event.location}</div>
                   {event.location_coords && (
                     <div className="text-xs text-muted-foreground">
                       Coordinates: {event.location_coords.lat?.toFixed(6) || 'N/A'},{' '}
@@ -183,11 +183,11 @@ const EventDetail = () => {
 
               <Separator />
 
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-muted-foreground" />
+              <div className="flex items-start gap-3">
+                <Users className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-medium">Seating</div>
-                  <div className="text-sm">
+                  <div className="font-medium text-sm sm:text-base">Seating</div>
+                  <div className="text-xs sm:text-sm">
                     Total Seats: {event.total_seats}
                   </div>
                 </div>
@@ -198,29 +198,29 @@ const EventDetail = () => {
           {/* Price Categories */}
           <Card>
             <CardHeader>
-              <CardTitle>Price Categories</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Price Categories</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {event.price_details?.map((category, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center p-3 border rounded-lg"
+                    className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-3 border rounded-lg"
                   >
-                    <div>
-                      <div className="font-medium">{category.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm sm:text-base">{category.name}</div>
                       {category.description && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs sm:text-sm text-muted-foreground">
                           {category.description}
                         </div>
                       )}
                       {category.available_seats !== undefined && (
-                        <div className="text-sm">
+                        <div className="text-xs sm:text-sm">
                           {category.available_seats} seats available
                         </div>
                       )}
                     </div>
-                    <div className="text-xl font-bold">₹{category.price}</div>
+                    <div className="text-lg sm:text-xl font-bold flex-shrink-0">₹{category.price}</div>
                   </div>
                 ))}
               </div>
@@ -230,21 +230,21 @@ const EventDetail = () => {
           {/* Metadata */}
           <Card>
             <CardHeader>
-              <CardTitle>Metadata</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Metadata</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between">
+            <CardContent className="space-y-2 text-xs sm:text-sm">
+              <div className="flex justify-between gap-2">
                 <span className="text-muted-foreground">Created By</span>
-                <span>{event.created_by}</span>
+                <span className="text-right break-words">{event.created_by}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <span className="text-muted-foreground">Created At</span>
-                <span>{new Date(event.created_at).toLocaleString()}</span>
+                <span className="text-right">{new Date(event.created_at).toLocaleString()}</span>
               </div>
               {event.updated_at && (
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Updated At</span>
-                  <span>{new Date(event.updated_at).toLocaleString()}</span>
+                  <span className="text-right">{new Date(event.updated_at).toLocaleString()}</span>
                 </div>
               )}
             </CardContent>

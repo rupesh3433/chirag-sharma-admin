@@ -361,40 +361,46 @@ const EventCreate = () => {
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" onClick={() => navigate('/admin/events')}>
+      <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 mb-4 md:mb-6">
+        <Button variant="outline" onClick={() => navigate('/admin/events')} size="sm" className="sm:size-default">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
             {isEditMode ? 'Edit Event' : 'Create New Event'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {isEditMode ? 'Update your event details' : 'Fill in the details for your new event'}
           </p>
         </div>
       </div>
 
       {/* Steps */}
-      <div className="flex gap-4 mb-8">
+      <div className="flex gap-2 sm:gap-4 mb-6 md:mb-8 overflow-x-auto pb-2">
         <Button
           variant={step === 1 ? 'default' : 'outline'}
           onClick={() => setStep(1)}
+          size="sm"
+          className="flex-shrink-0"
         >
           1. Basic Info
         </Button>
         <Button
           variant={step === 2 ? 'default' : 'outline'}
           onClick={() => setStep(2)}
+          size="sm"
+          className="flex-shrink-0"
         >
           2. Details & Pricing
         </Button>
         <Button
           variant={step === 3 ? 'default' : 'outline'}
           onClick={() => setStep(3)}
+          size="sm"
+          className="flex-shrink-0"
         >
           3. Images
         </Button>
@@ -402,7 +408,7 @@ const EventCreate = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="text-lg sm:text-xl">
             {step === 1 && 'Basic Information'}
             {step === 2 && 'Event Details & Pricing'}
             {step === 3 && 'Images & Media'}
@@ -411,10 +417,10 @@ const EventCreate = () => {
         <CardContent>
           {/* Step 1: Basic Info */}
           {step === 1 && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Event Title *</Label>
+                  <Label htmlFor="title" className="text-sm">Event Title *</Label>
                   <Input
                     id="title"
                     name="title"
@@ -424,7 +430,7 @@ const EventCreate = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="total_seats">Total Seats *</Label>
+                  <Label htmlFor="total_seats" className="text-sm">Total Seats *</Label>
                   <Input
                     id="total_seats"
                     name="total_seats"
@@ -455,7 +461,7 @@ const EventCreate = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Event Description *</Label>
+                <Label htmlFor="bio" className="text-sm">Event Description *</Label>
                 <Textarea
                   id="bio"
                   name="bio"
@@ -463,12 +469,13 @@ const EventCreate = () => {
                   onChange={handleInputChange}
                   placeholder="Describe your event..."
                   rows={4}
+                  className="text-sm sm:text-base"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="date_from">Start Date *</Label>
+                  <Label htmlFor="date_from" className="text-sm">Start Date *</Label>
                   <Input
                     id="date_from"
                     name="date_from"
@@ -478,7 +485,7 @@ const EventCreate = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="date_to">End Date *</Label>
+                  <Label htmlFor="date_to" className="text-sm">End Date *</Label>
                   <Input
                     id="date_to"
                     name="date_to"
@@ -489,9 +496,9 @@ const EventCreate = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="time_from">Start Time *</Label>
+                  <Label htmlFor="time_from" className="text-sm">Start Time *</Label>
                   <Input
                     id="time_from"
                     name="time_from"
@@ -501,7 +508,7 @@ const EventCreate = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time_to">End Time *</Label>
+                  <Label htmlFor="time_to" className="text-sm">End Time *</Label>
                   <Input
                     id="time_to"
                     name="time_to"
@@ -513,7 +520,7 @@ const EventCreate = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-sm">Status</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) => handleSelectChange('status', value)}
@@ -534,9 +541,9 @@ const EventCreate = () => {
 
           {/* Step 2: Details & Pricing */}
           {step === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
+                <Label htmlFor="location" className="text-sm">Location *</Label>
                 <div className="flex flex-col gap-2">
                   <Input
                     id="location"
@@ -545,7 +552,7 @@ const EventCreate = () => {
                     onChange={handleInputChange}
                     placeholder="Enter event venue address"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <LocationPicker
                       onLocationSelect={handleLocationSelect}
                       currentLocation={formData.location}
@@ -557,6 +564,7 @@ const EventCreate = () => {
                       onClick={fetchCurrentLocation} 
                       variant="outline"
                       disabled={isFetchingLocation}
+                      className="w-full sm:w-auto"
                     >
                       {isFetchingLocation ? (
                         <>
@@ -573,7 +581,7 @@ const EventCreate = () => {
                   </div>
                 </div>
                 {formData.location_coords.lat !== 0 && formData.location_coords.lng !== 0 && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     Coordinates: {formData.location_coords.lat.toFixed(6)}, {formData.location_coords.lng.toFixed(6)}
                   </div>
                 )}
@@ -581,17 +589,18 @@ const EventCreate = () => {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label>Price Categories *</Label>
+                  <Label className="text-sm">Price Categories *</Label>
                   <Button type="button" variant="outline" size="sm" onClick={addPriceCategory}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Category
+                    <span className="hidden sm:inline">Add Category</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 </div>
 
                 {priceCategories.map((category, index) => (
-                  <div key={index} className="grid grid-cols-4 gap-4 p-4 border rounded-lg">
+                  <div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-3 sm:p-4 border rounded-lg">
                     <div className="space-y-2">
-                      <Label>Category Name *</Label>
+                      <Label className="text-sm">Category Name *</Label>
                       <Input
                         value={category.name}
                         onChange={(e) => handlePriceChange(index, 'name', e.target.value)}
@@ -599,7 +608,7 @@ const EventCreate = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Price (₹) *</Label>
+                      <Label className="text-sm">Price (₹) *</Label>
                       <Input
                         type="number"
                         min="0"
@@ -615,7 +624,7 @@ const EventCreate = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Available Seats</Label>
+                      <Label className="text-sm">Available Seats</Label>
                       <Input
                         type="number"
                         min="0"
@@ -630,7 +639,7 @@ const EventCreate = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Description</Label>
+                      <Label className="text-sm">Description</Label>
                       <Input
                         value={category.description || ''}
                         onChange={(e) => handlePriceChange(index, 'description', e.target.value)}
@@ -638,7 +647,7 @@ const EventCreate = () => {
                       />
                     </div>
                     {priceCategories.length > 1 && (
-                      <div className="col-span-4 flex justify-end">
+                      <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
                         <Button
                           type="button"
                           variant="ghost"
@@ -659,25 +668,26 @@ const EventCreate = () => {
 
           {/* Step 3: Images */}
           {step === 3 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="space-y-4">
-                <Label>Main Poster Image {!isEditMode && '*'}</Label>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                <Label className="text-sm">Main Poster Image {!isEditMode && '*'}</Label>
+                <div className="border-2 border-dashed rounded-lg p-6 sm:p-8 text-center">
                   {mainImage || existingMainPosterUrl ? (
                     <div className="space-y-4">
                       <div className="w-full bg-gray-50 rounded-lg p-4">
                         <img
                           src={mainImage ? URL.createObjectURL(mainImage) : existingMainPosterUrl}
                           alt="Preview"
-                          className="w-full h-auto mx-auto"
+                          className="w-full h-auto mx-auto max-w-lg"
                         />
                       </div>
-                      <div className="flex gap-2 justify-center">
+                      <div className="flex flex-col sm:flex-row gap-2 justify-center">
                         <Button
                           variant="outline"
                           onClick={removeMainImage}
                           className="text-red-600"
                           type="button"
+                          size="sm"
                         >
                           <X className="mr-2 h-4 w-4" />
                           Remove Image
@@ -690,7 +700,7 @@ const EventCreate = () => {
                           id="change-main-image"
                         />
                         <Label htmlFor="change-main-image">
-                          <Button asChild variant="outline" type="button">
+                          <Button asChild variant="outline" type="button" size="sm">
                             <span>Change Image</span>
                           </Button>
                         </Label>
@@ -698,9 +708,9 @@ const EventCreate = () => {
                     </div>
                   ) : (
                     <div>
-                      <Upload className="h-12 w-12 mx-auto text-gray-400" />
-                      <p className="mt-2">Upload main poster image</p>
-                      <p className="text-sm text-muted-foreground">
+                      <Upload className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-400" />
+                      <p className="mt-2 text-sm sm:text-base">Upload main poster image</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                         JPG/PNG (Max 10MB) - Scaled to max 1920px width, aspect ratio preserved
                       </p>
                       <Input
@@ -711,7 +721,7 @@ const EventCreate = () => {
                         id="main-image"
                       />
                       <Label htmlFor="main-image">
-                        <Button asChild variant="outline" className="mt-4" type="button">
+                        <Button asChild variant="outline" className="mt-4" type="button" size="sm">
                           <span>Choose File</span>
                         </Button>
                       </Label>
@@ -721,11 +731,11 @@ const EventCreate = () => {
               </div>
 
               <div className="space-y-4">
-                <Label>Gallery Images (Optional)</Label>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  <Upload className="h-12 w-12 mx-auto text-gray-400" />
-                  <p className="mt-2">Upload gallery images</p>
-                  <p className="text-sm text-muted-foreground">
+                <Label className="text-sm">Gallery Images (Optional)</Label>
+                <div className="border-2 border-dashed rounded-lg p-6 sm:p-8 text-center">
+                  <Upload className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-gray-400" />
+                  <p className="mt-2 text-sm sm:text-base">Upload gallery images</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                     Multiple images allowed (Max 10MB each) - Scaled to max 1920px width, aspect ratios preserved
                   </p>
                   <Input
@@ -737,7 +747,7 @@ const EventCreate = () => {
                     multiple
                   />
                   <Label htmlFor="gallery-images">
-                    <Button asChild variant="outline" className="mt-4" type="button">
+                    <Button asChild variant="outline" className="mt-4" type="button" size="sm">
                       <span>Choose Files</span>
                     </Button>
                   </Label>
@@ -745,7 +755,7 @@ const EventCreate = () => {
 
                 {/* Gallery preview */}
                 {(galleryImages.length > 0 || existingGalleryUrls.length > 0) && (
-                  <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
                     {existingGalleryUrls.map((image, index) => (
                       <div key={`existing-${index}`} className="relative group">
                         <div className="w-full bg-gray-50 rounded-lg p-2">
@@ -793,21 +803,21 @@ const EventCreate = () => {
           )}
 
           {/* Navigation buttons */}
-          <div className="flex justify-between mt-8">
+          <div className="flex flex-col sm:flex-row justify-between gap-2 mt-6 sm:mt-8">
             {step > 1 && (
-              <Button variant="outline" onClick={() => setStep(step - 1)} type="button">
+              <Button variant="outline" onClick={() => setStep(step - 1)} type="button" className="w-full sm:w-auto">
                 Previous
               </Button>
             )}
             {step < 3 ? (
-              <Button onClick={() => setStep(step + 1)} className="ml-auto" type="button">
+              <Button onClick={() => setStep(step + 1)} className="w-full sm:w-auto sm:ml-auto" type="button">
                 Next
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="ml-auto"
+                className="w-full sm:w-auto sm:ml-auto"
                 type="button"
               >
                 {isSubmitting ? 'Saving...' : (isEditMode ? 'Update Event' : 'Create Event')}
